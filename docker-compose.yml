@@ -1,0 +1,18 @@
+version: '3.8'
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile_httpd
+    ports:
+      - "80:80"
+    volumes:
+      - ./phpinfo:/var/www/html/
+      - ./smarty:/var/www/html/smarty_test
+      - ./httpd/homepage/stg_rinnai/app/httpdconf:/home/homepage/stg_rinnai/app/httpdconf
+      - ./httpd/homepage/stg_rinnai/app/src/public_html:/home/homepage/stg_rinnai/app/src/public_html
+      - ./httpd/homepage/stg_rinnai/app/src/admin_public_html:/home/homepage/stg_rinnai/app/src/admin_public_html
+      - /etc/httpd/conf:/etc/httpd/conf  
+    environment:
+      - PHP_XDEBUG_REMOTE_HOST=host.docker.internal
+    restart: always

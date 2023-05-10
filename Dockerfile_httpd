@@ -1,0 +1,36 @@
+FROM php:7.2.12-apache
+
+COPY ./httpd/stg.rinnai.conf /etc/apache2/conf-available/
+
+RUN echo "deb http://archive.debian.org/debian/ stretch main" > /etc/apt/sources.list \
+    && echo "deb http://archive.debian.org/debian-security stretch/updates main" >> /etc/apt/sources.list \
+    && apt-get update \
+    && apt-get -y install wget unzip libpng-dev vim sudo
+
+# Smartyの解凍とインストール
+# Smartyの解凍とインストール
+RUN wget https://github.com/smarty-php/smarty/archive/refs/tags/v2.6.31.tar.gz -O /tmp/smarty.tar.gz \
+    && tar -zxf /tmp/smarty.tar.gz -C /usr/local/lib/php \
+    && mv /usr/local/lib/php/smarty-2.6.31/libs/* /usr/local/lib/php/ \
+    && rm -rf /usr/local/lib/php/smarty-2.6.31 /tmp/smarty.tar.gz
+
+RUN docker-php-ext-install gd json mbstring
+
+RUN mkdir -p /etc/apache2/logs
+RUN a2enmod rewrite headers
+
+RUN mkdir -p /var/www/html/smarty/templates_c /var/www/html/smarty/cache \
+    && chmod -R 777 /var/www/html/smarty/templates_c /var/www/html/smarty/cache \
+    && rm -rf /var/lib/apt/lists/* \
+    && echo "ServerName localhost" >> /etc/apache2/apache2.conf \
+    && sed -i "s/AllowOverride None/AllowOverride All/g" /etc/apache2/apache2.conf \
+    && mkdir -p /etc/apache2/logs \
+    && mkdir -p /var/www/html \
+    && chown -R www-data:www-data /var/www/html \
+    && rm -rf /var/www/html/* \
+    && echo "<?php phpinfo(); ?>" > /var/www/html/index.php \
+    && apt-get clean
+
+# apache2.confでstg.rinnai.confを読み込む
+RUN echo "Include /etc/apache2/conf-available/stg.rinnai.conf" >> /etc/apache2/apache2.conf
+
